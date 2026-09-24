@@ -167,6 +167,8 @@ Sound sfxMilestone;
 
 Music bgMusic;
 bool bgMusicLoaded = false;
+Music gameplayMusic;
+bool gameplayMusicLoaded = false;
 
 void InitGame(void);
 void ResetPaddleAndBall(void);
@@ -726,6 +728,13 @@ void InitAudio(void)
         SetMusicVolume(bgMusic, 0.5);
         bgMusicLoaded = true;
     }
+    gameplayMusic = LoadMusicStream("resources/menu_bgm.mp3");
+    if (gameplayMusic.frameCount > 0)
+    {
+        gameplayMusic.looping = true;
+        SetMusicVolume(gameplayMusic, 0.3);
+        gameplayMusicLoaded = true;
+    }
 
     SetSoundVolume(sfxBrickBreak, 0.8);
     SetSoundVolume(sfxBrickDamaged, 0.6);
@@ -751,7 +760,8 @@ void UnloadAudioAssets(void)
     UnloadSound(sfxConfirm);
     UnloadSound(sfxLevelClear);
     UnloadSound(sfxMilestone);
-
+    if (gameplayMusicLoaded)
+        UnloadMusicStream(gameplayMusic);
     if (bgMusicLoaded)
         UnloadMusicStream(bgMusic);
 }
@@ -760,22 +770,31 @@ void PlayConfirmSfx(void) { PlaySound(sfxConfirm); }
 
 void UpdateBackgroundMusic(void)
 {
-    if (!bgMusicLoaded)
-        return;
-
-    bool wantMusic = (currentState == STATE_MENU) ||
-                     (currentState == STATE_NAME_INPUT);
-
-    if (wantMusic)
+    if (bgMusicLoaded)
     {
-        if (!IsMusicStreamPlaying(bgMusic))
-            PlayMusicStream(bgMusic);
-        UpdateMusicStream(bgMusic);
-    }
-    else
-    {
-        if (IsMusicStreamPlaying(bgMusic))
+        bool wantMenuMusic = (currentState == STATE_MENU) ||
+                             (currentState == STATE_NAME_INPUT);
+        if (wantMenuMusic)
+        {
+            if (!IsMusicStreamPlaying(bgMusic))
+                PlayMusicStream(bgMusic);
+            UpdateMusicStream(bgMusic);
+        }
+        else if (IsMusicStreamPlaying(bgMusic))
             StopMusicStream(bgMusic);
+    }
+
+    if (gameplayMusicLoaded)
+    {
+        bool wantGameplayMusic = (currentState == STATE_GAMEPLAY);
+        if (wantGameplayMusic)
+        {
+            if (!IsMusicStreamPlaying(gameplayMusic))
+                PlayMusicStream(gameplayMusic);
+            UpdateMusicStream(gameplayMusic);
+        }
+        else if (IsMusicStreamPlaying(gameplayMusic))
+            StopMusicStream(gameplayMusic);
     }
 }
 
