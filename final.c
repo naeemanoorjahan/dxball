@@ -49,7 +49,9 @@ typedef enum GameState
     STATE_LEVEL_CLEAR,
     STATE_GAME_OVER,
     STATE_WIN,
-    STATE_HIGH_SCORES
+    STATE_HIGH_SCORES,
+    STATE_HOW_TO_PLAY,
+    STATE_CREDITS
 } GameState;
 
 typedef enum PowerUpType
@@ -221,6 +223,8 @@ void UpdateLevelClear(void);
 void UpdateGameOver(void);
 void UpdateWin(void);
 void UpdateHighScores(void);
+void UpdateHowToPlay(void);
+void UpdateCredits(void);
 bool UpdateEndScreenNav(void);
 
 void DrawMenu(void);
@@ -230,6 +234,8 @@ void DrawLevelClear(void);
 void DrawGameOver(void);
 void DrawWin(void);
 void DrawHighScores(void);
+void DrawHowToPlay(void);
+void DrawCredits(void);
 
 void DrawMenuStyleBackground(void);
 void DrawGameplayStyleBackground(void);
@@ -273,6 +279,12 @@ int main(void)
         case STATE_HIGH_SCORES:
             UpdateHighScores();
             break;
+        case STATE_HOW_TO_PLAY:
+            UpdateHowToPlay();
+            break;
+        case STATE_CREDITS:
+            UpdateCredits();
+            break;
         }
 
         UpdateBackgroundMusic();
@@ -301,6 +313,12 @@ int main(void)
             break;
         case STATE_HIGH_SCORES:
             DrawHighScores();
+            break;
+        case STATE_HOW_TO_PLAY:
+            DrawHowToPlay();
+            break;
+        case STATE_CREDITS:
+            DrawCredits();
             break;
         }
 
@@ -732,12 +750,12 @@ void InitAudio(void)
     if (gameplayMusic.frameCount > 0)
     {
         gameplayMusic.looping = true;
-        SetMusicVolume(gameplayMusic, 0.3);
+        SetMusicVolume(gameplayMusic, 0.2);
         gameplayMusicLoaded = true;
     }
 
     SetSoundVolume(sfxBrickBreak, 0.8);
-    SetSoundVolume(sfxBrickDamaged, 0.6);
+    SetSoundVolume(sfxBrickDamaged, 0.9);
     SetSoundVolume(sfxPaddleHit, 0.8);
     SetSoundVolume(sfxWallHit, 0.7);
     SetSoundVolume(sfxLose, 0.9);
@@ -745,7 +763,7 @@ void InitAudio(void)
     SetSoundVolume(sfxWinFanfare, 0.9);
     SetSoundVolume(sfxConfirm, 0.7);
     SetSoundVolume(sfxLevelClear, 0.8);
-    SetSoundVolume(sfxMilestone, 0.6);
+    SetSoundVolume(sfxMilestone, 0.9);
 }
 
 void UnloadAudioAssets(void)
@@ -773,7 +791,10 @@ void UpdateBackgroundMusic(void)
     if (bgMusicLoaded)
     {
         bool wantMenuMusic = (currentState == STATE_MENU) ||
-                             (currentState == STATE_NAME_INPUT);
+                             (currentState == STATE_NAME_INPUT) ||
+                             (currentState == STATE_HOW_TO_PLAY) ||
+                             (currentState == STATE_CREDITS) ||
+                             (currentState == STATE_HIGH_SCORES);
         if (wantMenuMusic)
         {
             if (!IsMusicStreamPlaying(bgMusic))
@@ -1036,9 +1057,9 @@ void LoadLevel(int level)
 void UpdateMenu(void)
 {
     if (IsKeyPressed(KEY_DOWN))
-        menuSelection = (menuSelection + 1) % 3;
+        menuSelection = (menuSelection + 1) % 5;
     if (IsKeyPressed(KEY_UP))
-        menuSelection = (menuSelection + 2) % 3;
+        menuSelection = (menuSelection + 4) % 5;
 
     if (IsKeyPressed(KEY_ENTER))
     {
@@ -1050,7 +1071,11 @@ void UpdateMenu(void)
             currentState = STATE_NAME_INPUT;
         }
         else if (menuSelection == 1)
+            currentState = STATE_HOW_TO_PLAY;
+        else if (menuSelection == 2)
             currentState = STATE_HIGH_SCORES;
+        else if (menuSelection == 3)
+            currentState = STATE_CREDITS;
         else
             exitRequested = true;
     }
@@ -1079,22 +1104,22 @@ void DrawMenu(void)
 {
     DrawMenuStyleBackground();
 
-    DrawText("CSE 102 PROJECT", SCREEN_WIDTH / 2 - MeasureText("CSE 102 PROJECT", 22) / 2, 90, 22, LIGHTGRAY);
-    DrawText("DX-BALL", SCREEN_WIDTH / 2 - MeasureText("DX-BALL", 60) / 2, 130, 60, GOLD);
+    DrawText("CSE 102 PROJECT", SCREEN_WIDTH / 2 - MeasureText("CSE 102 PROJECT", 30) / 2, 90, 30, RED);
+    DrawText("DX-BALL", SCREEN_WIDTH / 2 - MeasureText("DX-BALL", 80) / 2, 130, 80, GOLD);
     DrawText("Break the Brick, Beat Your Best",
-             SCREEN_WIDTH / 2 - MeasureText("Break the Brick, Beat Your Best", 20) / 2, 210, 20, WHITE);
+             SCREEN_WIDTH / 2 - MeasureText("Break the Brick, Beat Your Best", 20) / 2, 210, 20, RED);
 
     int topScore = (highScoreCount > 0) ? highScores[0].score : 0;
     const char *highLine = TextFormat("HIGH SCORE: %d", topScore);
     DrawText(highLine, SCREEN_WIDTH / 2 - MeasureText(highLine, 22) / 2, 250, 22, GOLD);
 
-    const char *options[3] = {"Play", "High Scores", "Exit"};
-    for (int i = 0; i < 3; i++)
+    const char *options[5] = {"Play", "How To Play", "High Scores", "Credits", "Exit"};
+    for (int i = 0; i < 5; i++)
     {
         Color c = (i == menuSelection) ? YELLOW : LIGHTGRAY;
-        int fontSize = (i == menuSelection) ? 36 : 30;
+        int fontSize = (i == menuSelection) ? 32 : 26;
         DrawText(options[i], SCREEN_WIDTH / 2 - MeasureText(options[i], fontSize) / 2,
-                 340 + i * 70, fontSize, c);
+                 300 + i * 54, fontSize, c);
     }
 
     const char *hint = "Use UP / DOWN and ENTER";
@@ -1543,4 +1568,132 @@ void DrawHighScores(void)
 
     const char *hint = "PRESS ENTER TO RETURN TO MENU";
     DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 600, 18, GRAY);
+}
+
+void UpdateHowToPlay(void)
+{
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))
+    {
+        PlayConfirmSfx();
+        currentState = STATE_MENU;
+        menuSelection = 0;
+    }
+}
+
+void DrawHowToPlay(void)
+{
+    DrawMenuStyleBackground();
+
+    const char *title = "HOW TO PLAY";
+    DrawText(title, SCREEN_WIDTH / 2 - MeasureText(title, 44) / 2, 78, 44, GOLD);
+
+    int leftX = 230;
+    int rightX = 700;
+    int y = 150;
+    int lineGap = 26;
+
+    DrawText("CONTROLS", leftX, y, 24, YELLOW);
+    y += lineGap + 6;
+    DrawText("LEFT / A         Move paddle left", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("RIGHT / D        Move paddle right", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("SPACE            Launch ball / Fire laser", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("P / ESC          Pause game", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("ENTER            Confirm / Continue", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    y += 10;
+    DrawText("GOAL", leftX, y, 24, YELLOW);
+    y += lineGap + 6;
+    DrawText("Break every breakable brick to clear", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("each level. Gold bricks are", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("unbreakable -- the ball just bounces", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("off them. Don't let the ball fall", leftX, y, 18, LIGHTGRAY);
+    y += lineGap;
+    DrawText("past your paddle, or you lose a life!", leftX, y, 18, LIGHTGRAY);
+
+    int ry = 150;
+    DrawText("POWER-UPS", rightX, ry, 24, YELLOW);
+    ry += lineGap + 6;
+
+    struct
+    {
+        Color c;
+        const char *label;
+        const char *desc;
+    } powerInfo[7] = {
+        {BLUE, "W", "Expand Paddle - widens your paddle"},
+        {GREEN, "+", "Extra Life - gain one more life"},
+        {ORANGE, "S", "Slow Ball - slows the ball down"},
+        {PURPLE, "L", "Laser - paddle can fire lasers"},
+        {RED, "X", "Anti-Life - costs you one life"},
+        {GOLD, "$", "Bonus Score - instant score boost"},
+        {MAROON, "B", "Bomb - drops a bomb that destroys bricks"},
+    };
+
+    for (int i = 0; i < 7; i++)
+    {
+        DrawCircleV((Vector2){(float)(rightX + 10), (float)(ry + 9)}, 12, powerInfo[i].c);
+        DrawText(powerInfo[i].label, rightX + 6, ry + 2, 14, WHITE);
+        DrawText(powerInfo[i].desc, rightX + 32, ry + 1, 17, LIGHTGRAY);
+        ry += lineGap;
+    }
+
+    const char *hint = "PRESS ENTER TO RETURN TO MENU";
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 600, 18, GRAY);
+}
+
+void UpdateCredits(void)
+{
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))
+    {
+        PlayConfirmSfx();
+        currentState = STATE_MENU;
+        menuSelection = 0;
+    }
+}
+
+void DrawCredits(void)
+{
+    DrawMenuStyleBackground();
+
+    const char *title = "CREDITS";
+    DrawText(title, SCREEN_WIDTH / 2 - MeasureText(title, 46) / 2, 100, 46, GOLD);
+
+    /* ---- Credits ---- */
+    const char *creditLines[] = {
+        "Game design & programming: BUET CSE '25",
+        "",
+        "SOUND EFFECTS & MUSIC:",
+        "  Free .wav sound effects from Mixkit.co",
+        "",
+        "BACKGROUND IMAGES:",
+        "  Generated using ChatGPT (DALL-E) and Google Gemini",
+        "",
+        "Built with raylib (raylib.com)",
+    };
+    int lineCount = sizeof(creditLines) / sizeof(creditLines[0]);
+
+    int y = 175;
+    for (int i = 0; i < lineCount; i++)
+    {
+        Color c = LIGHTGRAY;
+        int fontSize = 20;
+        if (creditLines[i][0] != '\0' && creditLines[i][strlen(creditLines[i]) - 1] == ':')
+        {
+            c = YELLOW;
+            fontSize = 22;
+        }
+        DrawText(creditLines[i], SCREEN_WIDTH / 2 - MeasureText(creditLines[i], fontSize) / 2,
+                 y, fontSize, c);
+        y += 28;
+    }
+
+    const char *hint = "PRESS ENTER TO RETURN TO MENU";
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 630, 18, GRAY);
 }
