@@ -245,7 +245,7 @@ void DrawHUD(void);
 
 int main(void)
 {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "DX-BALL - BUET CSE '25");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "DX-BALL");
     SetTargetFPS(60);
     srand((unsigned int)time(NULL));
 
@@ -370,7 +370,7 @@ float CalculateBounceAngle(Vector2 ballPos, Rectangle paddleRect)
         relativeX = 0.0;
     if (relativeX > 1.0)
         relativeX = 1.0;
-    return 10.0 + relativeX * 160.0; // 170-relativeX*160
+    return 180-(170.0 - relativeX * 160.0);//as per sir's requirement
 }
 
 void SetBallVelocityFromAngle(float angleDeg, float speedMag)
@@ -444,7 +444,7 @@ PowerUpType ChoosePowerUpTypeForLevel(int level)
 
 void SpawnPowerUp(Vector2 pos)
 {
-    if (rand() % 100 < 25)
+    if (rand() % 100 < 20)
     {
         for (int i = 0; i < MAX_POWERUPS; i++)
         {
@@ -1104,16 +1104,18 @@ void DrawMenu(void)
 {
     DrawMenuStyleBackground();
 
-    DrawText("CSE 102 PROJECT", SCREEN_WIDTH / 2 - MeasureText("CSE 102 PROJECT", 30) / 2, 90, 30, RED);
-    DrawText("DX-BALL", SCREEN_WIDTH / 2 - MeasureText("DX-BALL", 80) / 2, 130, 80, GOLD);
-    DrawText("Break the Brick, Beat Your Best",
-             SCREEN_WIDTH / 2 - MeasureText("Break the Brick, Beat Your Best", 20) / 2, 210, 20, RED);
+    DrawText("CSE 102 PROJECT", SCREEN_WIDTH / 2 - MeasureText("CSE 102 PROJECT", 30) / 2, 90, 30, GOLD);
+    DrawText("DX-BALL", SCREEN_WIDTH / 2 - MeasureText("DX-BALL", 80) / 2, 130, 90, RED);
+    DrawText("whille(!gameOver) keep_bouncing();",
+             SCREEN_WIDTH / 2 - MeasureText("whille(!gameOver) keep_bouncing();", 30) / 2, 230, 30, LIME);
 
     int topScore = (highScoreCount > 0) ? highScores[0].score : 0;
     const char *highLine = TextFormat("HIGH SCORE: %d", topScore);
-    DrawText(highLine, SCREEN_WIDTH / 2 - MeasureText(highLine, 22) / 2, 250, 22, GOLD);
+    DrawText(highLine, SCREEN_WIDTH / 2 - MeasureText(highLine, 22) / 2, 270, 22, ORANGE
 
-    const char *options[5] = {"Play", "How To Play", "High Scores", "Credits", "Exit"};
+);
+
+    const char *options[5] = {"Play", "How To Play", "Leaderboard", "Credits", "Exit"};
     for (int i = 0; i < 5; i++)
     {
         Color c = (i == menuSelection) ? YELLOW : LIGHTGRAY;
@@ -1123,7 +1125,7 @@ void DrawMenu(void)
     }
 
     const char *hint = "Use UP / DOWN and ENTER";
-    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 610, 18, GRAY);
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 610, 18, YELLOW);
 }
 
 void UpdateNameInput(void)
@@ -1253,6 +1255,7 @@ void UpdateGameplay(void)
             ball.active = false;
             ball.speed = (Vector2){0.0, 0.0};
             paddle.rect.width = 120;
+            paddle.hasLaser = false;
 
             if (lives <= 0)
             {
@@ -1364,12 +1367,13 @@ void DrawBrick(const Brick *b)
 
 void DrawHUD(void)
 {
-    DrawText(TextFormat("Score: %i", score), 20, 20, 22, DARKGRAY);
+    DrawText(TextFormat("Score: %i", score), 20, 20, 22, MAROON);
     DrawText(TextFormat("Lives: %i", lives), SCREEN_WIDTH - 140, 20, 22, MAROON);
-    DrawText(TextFormat("Level: %i", currentLevel), SCREEN_WIDTH / 2 - 45, 20, 22, DARKBLUE);
+    DrawText(TextFormat("Level: %i", currentLevel), SCREEN_WIDTH / 2 - 45, 20, 22, MAROON);
 }
 
 void DrawGameplay(void)
+
 {
     DrawGameplayStyleBackground();
 
@@ -1400,7 +1404,7 @@ void DrawGameplay(void)
     {
         const char *msg = "PRESS SPACE TO LAUNCH";
         DrawText(msg, SCREEN_WIDTH / 2 - MeasureText(msg, 22) / 2,
-                 SCREEN_HEIGHT / 2 + 80, 22, DARKGRAY);
+                 SCREEN_HEIGHT / 2 + 100, 25, MAROON);
     }
 
     if (isPaused)
@@ -1527,7 +1531,7 @@ void DrawEndScreen(const char *title, Color titleColor)
     }
 
     const char *hint = "Use UP / DOWN and ENTER";
-    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 560, 18, GRAY);
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 560, 18, YELLOW);
 }
 
 void DrawGameOver(void) { DrawEndScreen("GAME OVER", RED); }
@@ -1567,10 +1571,11 @@ void DrawHighScores(void)
     }
 
     const char *hint = "PRESS ENTER TO RETURN TO MENU";
-    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 600, 18, GRAY);
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 600, 18, YELLOW);
 }
 
 void UpdateHowToPlay(void)
+
 {
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_ESCAPE))
     {
@@ -1645,7 +1650,7 @@ void DrawHowToPlay(void)
     }
 
     const char *hint = "PRESS ENTER TO RETURN TO MENU";
-    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 600, 18, GRAY);
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 600, 18, YELLOW);
 }
 
 void UpdateCredits(void)
@@ -1667,15 +1672,20 @@ void DrawCredits(void)
 
     /* ---- Credits ---- */
     const char *creditLines[] = {
-        "Game design & programming: BUET CSE '25",
+        "Game design & programming:",
+        "Naeema Noorjahan(2505069) & Al Mukaddim Saki(2505068)",
         "",
+        "GAME ENGINE/FRAMEWORK:",
+        "raylib",
+        "",
+
         "SOUND EFFECTS & MUSIC:",
         "  Free .wav sound effects from Mixkit.co",
         "",
         "BACKGROUND IMAGES:",
-        "  Generated using ChatGPT (DALL-E) and Google Gemini",
-        "",
-        "Built with raylib (raylib.com)",
+        "  Generated using ChatGPT and Google Gemini",
+        ""
+
     };
     int lineCount = sizeof(creditLines) / sizeof(creditLines[0]);
 
@@ -1695,5 +1705,5 @@ void DrawCredits(void)
     }
 
     const char *hint = "PRESS ENTER TO RETURN TO MENU";
-    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 630, 18, GRAY);
+    DrawText(hint, SCREEN_WIDTH / 2 - MeasureText(hint, 18) / 2, 630, 18, GOLD);
 }
